@@ -1,0 +1,28 @@
+
+{
+  "name": "GameCommunity Indonesia",
+  "short_name": "GameComm",
+  "description": "Komunitas gaming terbesar Indonesia - bergabung, berkompetisi, dan level up bersama",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1e1b4b",
+  "theme_color": "#8b5cf6",
+  "categories": ["entertainment", "games", "social"],
+  "lang": "id",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjM0I4MkY2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIyNCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik02NCA2NGg2NGE4IDggMCAwIDEgOCA4djQ4YTggOCAwIDAgMS04IDhIODRsLTE2IDE2VjgwYTggOCAwIDAgMS04LThoLThhOCA4IDAgMCAxLTgtOFY3MmE4IDggMCAwIDEgOC04eiIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9Ijg4IiBjeT0iOTYiIHI9IjQiIGZpbGw9IiM4YjVjZjYiLz48Y2lyY2xlIGN4PSIxMDQiIGN5PSI5NiIgcj0iNCIgZmlsbD0iIzhiNWNmNiIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9Ijk2IiByPSI0IiBmaWxsPSIjOGI1Y2Y2Ii8+PC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjM0I4MkY2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI2NCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik0xNjggMTY4aDE3NmEyNCAyNCAwIDAgMSAyNCAyNHYxMjhhMjQgMjQgMCAwIDEtMjQgMjRIMjE2bC00OCA0OFYzMjBhMjQgMjQgMCAwIDEtMjQtMjRoLTI0YTI0IDI0IDAgMCAxLTI0LTI0VjE5MmEyNCAyNCAwIDAgMSAyNC0yNHoiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIyMzIiIGN5PSIyNTYiIHI9IjEyIiBmaWxsPSIjOGI1Y2Y2Ii8+PGNpcmNsZSBjeD0iMjgwIiBjeT0iMjU2IiByPSIxMiIgZmlsbD0iIzhiNWNmNiIvPjxjaXJjbGUgY3g9IjMyOCIgY3k9IjI1NiIgcj0iMTIiIGZpbGw9IiM4YjVjZjYiLz48L3N2Zz4=",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
