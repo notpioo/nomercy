@@ -198,8 +198,43 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    // Always use demo data for now since Firestore auth is not set up
-    return demoUsers.get(id);
+    // Check both regular ID and Firebase UID
+    let user = demoUsers.get(id);
+    
+    // If not found by ID, try to find by Firebase UID
+    if (!user) {
+      for (const demoUser of demoUsers.values()) {
+        if (demoUser.id === id || (demoUser as any).firebaseUid === id) {
+          user = demoUser;
+          break;
+        }
+      }
+    }
+    
+    // If still not found and it looks like a Firebase UID, create a demo admin
+    if (!user && id && id.length > 20) {
+      console.log(`Creating demo admin for Firebase UID: ${id}`);
+      const demoAdmin: User = {
+        id: id,
+        username: "admin",
+        password: "admin123",
+        fullName: "Firebase Admin",
+        birthDate: new Date("1990-01-01"),
+        mercyCoins: 5000,
+        gems: 1000,
+        role: "admin",
+        rank: "diamond",
+        rankLevel: 5,
+        totalGamesPlayed: 100,
+        totalWins: 75,
+        level: 20,
+        createdAt: new Date()
+      };
+      demoUsers.set(id, demoAdmin);
+      return demoAdmin;
+    }
+    
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {

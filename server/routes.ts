@@ -113,21 +113,11 @@ router.get("/api/admin/stats", requireAuth, async (req: Request, res: Response) 
     const userId = (req as any).userId;
     console.log("Admin stats request from user:", userId);
     
-    // Special handling for demo admin
-    if (userId === "admin-demo" || userId === "demo-admin") {
-      const stats = await storage.getUserStats();
-      console.log("Returning stats for demo admin:", stats);
-      return res.json({
-        totalUsers: stats.totalUsers,
-        activeUsers: stats.activeUsers,
-        totalGamesPlayed: stats.totalGamesPlayed,
-        totalRevenue: stats.totalRevenue
-      });
-    }
-    
+    // Get or create user
     const user = await storage.getUser(userId);
-    console.log("Found user:", user ? { id: user.id, role: user.role } : "null");
+    console.log("Found/created user:", user ? { id: user.id, role: user.role, username: user.username } : "null");
     
+    // Check if user has admin access
     if (!user || user.role !== "admin") {
       console.log("Access denied for user:", userId, "role:", user?.role);
       return res.status(403).json({ error: "Admin access required" });
