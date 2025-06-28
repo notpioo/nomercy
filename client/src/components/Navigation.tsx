@@ -162,6 +162,11 @@ export default function Navigation() {
             <span className="font-medium">{user?.mercyCoins?.toLocaleString() || 0}</span>
             <span className="text-slate-400 text-sm">MC</span>
           </div>
+          <div className="flex items-center space-x-2 bg-slate-700 px-4 py-2 rounded-lg">
+            <div className="text-purple-400 text-sm">💎</div>
+            <span className="font-medium">{user?.gems?.toLocaleString() || 0}</span>
+            <span className="text-slate-400 text-sm">Gems</span>
+          </div>
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-full flex items-center justify-center">
               <span className="text-sm font-medium">{getInitials(user?.fullName || "U")}</span>

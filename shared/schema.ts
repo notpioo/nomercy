@@ -9,8 +9,12 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   birthDate: text("birth_date").notNull(),
   mercyCoins: integer("mercy_coins").notNull().default(0),
+  gems: integer("gems").notNull().default(0),
   role: text("role").notNull().default("member"), // member | admin
-  level: integer("level").notNull().default(1),
+  rank: text("rank").notNull().default("rookie"), // rookie | bronze | silver | gold | platinum | diamond
+  rankLevel: integer("rank_level").notNull().default(1), // 1, 2, 3
+  totalGamesPlayed: integer("total_games_played").notNull().default(0),
+  totalWins: integer("total_wins").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

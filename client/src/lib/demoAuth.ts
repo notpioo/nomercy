@@ -17,8 +17,12 @@ const demoUserData: DemoAuthUser = {
   fullName: "Demo User",
   birthDate: "1990-01-01",
   mercyCoins: 1000,
+  gems: 50,
   role: "member",
-  level: 1,
+  rank: "rookie",
+  rankLevel: 1,
+  totalGamesPlayed: 0,
+  totalWins: 0,
   createdAt: new Date(),
   firebaseUid: "demo-uid"
 };
@@ -38,8 +42,12 @@ export const demoRegisterUser = async (userData: InsertUser): Promise<DemoAuthUs
     fullName: userData.fullName,
     birthDate: userData.birthDate,
     mercyCoins: 100, // Starting bonus
+    gems: 10, // Starting gems
     role: "member",
-    level: 1,
+    rank: "rookie",
+    rankLevel: 1,
+    totalGamesPlayed: 0,
+    totalWins: 0,
     createdAt: new Date(),
     firebaseUid: `demo-${Date.now()}`
   };
