@@ -26,8 +26,8 @@ export const registerUser = async (userData: InsertUser): Promise<AuthUser> => {
   }
 
   try {
-    // Create Firebase user with username as email (username@nomercy.local)
-    const email = `${userData.username}@nomercy.local`;
+    // Create Firebase user with username as email (username@gmail.com)
+    const email = `${userData.username}@gmail.com`;
     const userCredential = await createUserWithEmailAndPassword(auth, email, userData.password);
     
     // Create user document in Firestore
@@ -60,7 +60,7 @@ export const loginUser = async (credentials: LoginUser): Promise<AuthUser> => {
   }
 
   try {
-    const email = `${credentials.username}@nomercy.local`;
+    const email = `${credentials.username}@gmail.com`;
     const userCredential = await signInWithEmailAndPassword(auth, email, credentials.password);
     
     // Get user data from Firestore

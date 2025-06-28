@@ -1,16 +1,30 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { registerUser, loginUser } from "@/lib/auth";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { insertUserSchema, loginSchema, type InsertUser, type LoginUser } from "@shared/schema";
-import { X } from "lucide-react";
+import { registerUser, loginUser } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Separate schemas for login and register forms
+const loginFormSchema = z.object({
+  username: z.string().min(1, "Username harus diisi"),
+  password: z.string().min(1, "Password harus diisi"),
+});
+
+const registerFormSchema = z.object({
+  username: z.string().min(3, "Username minimal 3 karakter"),
+  fullName: z.string().min(1, "Nama lengkap harus diisi"),
+  birthDate: z.string().min(1, "Tanggal lahir harus diisi"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+});
+
+type LoginFormData = z.infer<typeof loginFormSchema>;
+type RegisterFormData = z.infer<typeof registerFormSchema>;
 
 interface AuthModalProps {
   open: boolean;
@@ -23,16 +37,17 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const { setUser } = useAuth();
   const { toast } = useToast();
 
-  const loginForm = useForm<LoginUser>({
-    resolver: zodResolver(loginSchema),
+  // Separate form instances
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
       username: "",
       password: "",
     },
   });
 
-  const registerForm = useForm<InsertUser>({
-    resolver: zodResolver(insertUserSchema),
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerFormSchema),
     defaultValues: {
       username: "",
       fullName: "",
@@ -41,19 +56,23 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
     },
   });
 
-  const handleLogin = async (data: LoginUser) => {
+  const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const user = await loginUser(data);
+      const user = await loginUser({
+        username: data.username,
+        password: data.password,
+      });
       setUser(user);
       onOpenChange(false);
       toast({
-        title: "Welcome back!",
-        description: `Logged in as ${user.username}`,
+        title: "Selamat datang kembali!",
+        description: `Login sebagai ${user.username}`,
       });
+      loginForm.reset();
     } catch (error: any) {
       toast({
-        title: "Login failed",
+        title: "Login gagal",
         description: error.message,
         variant: "destructive",
       });
@@ -62,36 +81,46 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   };
 
-  const handleRegister = async (data: InsertUser) => {
+  const handleRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const user = await registerUser(data);
+      const user = await registerUser({
+        username: data.username,
+        fullName: data.fullName,
+        birthDate: data.birthDate,
+        password: data.password,
+      });
       setUser(user);
       onOpenChange(false);
       toast({
-        title: "Welcome to NoMercy!",
-        description: "Your account has been created successfully.",
+        title: "Selamat datang di NoMercy!",
+        description: "Akun Anda berhasil dibuat.",
       });
+      registerForm.reset();
     } catch (error: any) {
       toast({
-        title: "Registration failed",
+        title: "Registrasi gagal",
         description: error.message,
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const switchMode = () => {
+    setIsLogin(!isLogin);
+    loginForm.reset();
+    registerForm.reset();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold text-slate-50">
-              {isLogin ? "Login to NoMercy" : "Join NoMercy"}
-            </DialogTitle>
-          </div>
+          <DialogTitle className="text-2xl font-bold text-slate-50">
+            {isLogin ? "Login ke NoMercy" : "Bergabung dengan NoMercy"}
+          </DialogTitle>
         </DialogHeader>
 
         {isLogin ? (
@@ -104,11 +133,16 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   <FormItem>
                     <FormLabel className="text-slate-300">Username</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter your username"
-                        className="bg-slate-700 border-slate-600 text-slate-50"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="Masukkan username Anda"
+                          className="bg-slate-700 border-slate-600 text-slate-50 pr-24"
+                          {...field}
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
+                          @gmail.com
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -123,7 +157,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder="Masukkan password Anda"
                         className="bg-slate-700 border-slate-600 text-slate-50"
                         {...field}
                       />
@@ -137,7 +171,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 className="w-full bg-indigo-500 hover:bg-indigo-600"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing In..." : "Sign In"}
+                {isLoading ? "Masuk..." : "Masuk"}
               </Button>
             </form>
           </Form>
@@ -151,11 +185,16 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   <FormItem>
                     <FormLabel className="text-slate-300">Username</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Choose a username"
-                        className="bg-slate-700 border-slate-600 text-slate-50"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="Pilih username"
+                          className="bg-slate-700 border-slate-600 text-slate-50 pr-24"
+                          {...field}
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
+                          @gmail.com
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -166,10 +205,10 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300">Full Name</FormLabel>
+                    <FormLabel className="text-slate-300">Nama Lengkap</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your full name"
+                        placeholder="Masukkan nama lengkap Anda"
                         className="bg-slate-700 border-slate-600 text-slate-50"
                         {...field}
                       />
@@ -183,7 +222,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 name="birthDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300">Birth Date</FormLabel>
+                    <FormLabel className="text-slate-300">Tanggal Lahir</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
@@ -204,7 +243,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Create a password"
+                        placeholder="Buat password"
                         className="bg-slate-700 border-slate-600 text-slate-50"
                         {...field}
                       />
@@ -218,7 +257,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 className="w-full bg-violet-500 hover:bg-violet-600"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? "Membuat Akun..." : "Buat Akun"}
               </Button>
             </form>
           </Form>
@@ -227,10 +266,10 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
         <div className="text-center">
           <Button
             variant="link"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={switchMode}
             className="text-indigo-400 hover:text-indigo-300"
           >
-            {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+            {isLogin ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
           </Button>
         </div>
       </DialogContent>
