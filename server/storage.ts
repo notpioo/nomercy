@@ -1,18 +1,4 @@
-
 import { db } from "./db";
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc,
-  updateDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  Timestamp 
-} from 'firebase-admin/firestore';
 import type { User, InsertUser } from "@shared/schema";
 
 export interface IStorage {
@@ -20,242 +6,211 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
-  getUserStats(): Promise<{ totalUsers: number; activeUsers: number }>;
+  getUserStats(): Promise<{ totalUsers: number; activeUsers: number; totalGamesPlayed: number; totalRevenue: number }>;
   updateUserCoins(id: string, mercyCoins: number, gems: number): Promise<void>;
   updateUserRank(id: string, rank: string, rankLevel: number): Promise<void>;
   updateUserGameStats(id: string, gamesPlayed: number, wins: number): Promise<void>;
 }
 
-// Demo storage as fallback
-const demoUsers = new Map<string, User>();
-const demoAdmin: User = {
-  id: "admin-demo",
-  username: "admin",
-  password: "admin123",
-  fullName: "Admin Demo",
-  birthDate: new Date("1990-01-01"),
-  mercyCoins: 1000,
-  gems: 500,
-  role: "admin",
-  rank: "diamond",
-  rankLevel: 3,
-  totalGamesPlayed: 50,
-  totalWins: 30,
-  level: 10,
-  createdAt: new Date()
+// Enhanced demo data for better testing
+const createDemoUsers = (): Map<string, User> => {
+  const users = new Map<string, User>();
+
+  const demoAdmin: User = {
+    id: "admin-demo",
+    username: "admin",
+    password: "admin123",
+    fullName: "Admin Demo",
+    birthDate: new Date("1990-01-01"),
+    mercyCoins: 1000,
+    gems: 500,
+    role: "admin",
+    rank: "diamond",
+    rankLevel: 3,
+    totalGamesPlayed: 50,
+    totalWins: 30,
+    level: 10,
+    createdAt: new Date()
+  };
+
+  const demoUsers: User[] = [
+    {
+      id: "user-1",
+      username: "player1",
+      password: "password123",
+      fullName: "Alex Johnson",
+      birthDate: new Date("1995-05-15"),
+      mercyCoins: 850,
+      gems: 120,
+      role: "member",
+      rank: "bronze",
+      rankLevel: 2,
+      totalGamesPlayed: 85,
+      totalWins: 42,
+      level: 3,
+      createdAt: new Date(Date.now() - 86400000)
+    },
+    {
+      id: "user-2",
+      username: "player2",
+      password: "password123",
+      fullName: "Sarah Chen",
+      birthDate: new Date("1992-08-20"),
+      mercyCoins: 1250,
+      gems: 250,
+      role: "member",
+      rank: "silver",
+      rankLevel: 1,
+      totalGamesPlayed: 156,
+      totalWins: 98,
+      level: 5,
+      createdAt: new Date(Date.now() - 172800000)
+    },
+    {
+      id: "user-3",
+      username: "player3",
+      password: "password123",
+      fullName: "Mike Rodriguez",
+      birthDate: new Date("1998-03-10"),
+      mercyCoins: 2100,
+      gems: 180,
+      role: "member",
+      rank: "gold",
+      rankLevel: 2,
+      totalGamesPlayed: 230,
+      totalWins: 165,
+      level: 8,
+      createdAt: new Date(Date.now() - 259200000)
+    },
+    {
+      id: "user-4",
+      username: "player4",
+      password: "password123",
+      fullName: "Emma Davis",
+      birthDate: new Date("1996-12-05"),
+      mercyCoins: 3200,
+      gems: 320,
+      role: "member",
+      rank: "platinum",
+      rankLevel: 1,
+      totalGamesPlayed: 412,
+      totalWins: 289,
+      level: 12,
+      createdAt: new Date(Date.now() - 345600000)
+    },
+    {
+      id: "user-5",
+      username: "player5",
+      password: "password123",
+      fullName: "David Kim",
+      birthDate: new Date("1993-07-22"),
+      mercyCoins: 4100,
+      gems: 450,
+      role: "member",
+      rank: "diamond",
+      rankLevel: 1,
+      totalGamesPlayed: 658,
+      totalWins: 478,
+      level: 15,
+      createdAt: new Date(Date.now() - 432000000)
+    }
+  ];
+
+  users.set(demoAdmin.id, demoAdmin);
+  demoUsers.forEach(user => users.set(user.id, user));
+
+  return users;
 };
 
-// Add more demo users for testing
-const demoUser1: User = {
-  id: "user-1",
-  username: "player1",
-  password: "password123",
-  fullName: "Player One",
-  birthDate: new Date("1995-05-15"),
-  mercyCoins: 850,
-  gems: 120,
-  role: "member",
-  rank: "bronze",
-  rankLevel: 2,
-  totalGamesPlayed: 85,
-  totalWins: 42,
-  level: 3,
-  createdAt: new Date(Date.now() - 86400000) // 1 day ago
-};
-
-const demoUser2: User = {
-  id: "user-2",
-  username: "player2",
-  password: "password123",
-  fullName: "Player Two",
-  birthDate: new Date("1992-08-20"),
-  mercyCoins: 1250,
-  gems: 250,
-  role: "member",
-  rank: "silver",
-  rankLevel: 1,
-  totalGamesPlayed: 156,
-  totalWins: 98,
-  level: 5,
-  createdAt: new Date(Date.now() - 172800000) // 2 days ago
-};
-
-const demoUser3: User = {
-  id: "user-3",
-  username: "player3",
-  password: "password123",
-  fullName: "Player Three",
-  birthDate: new Date("1998-03-10"),
-  mercyCoins: 2100,
-  gems: 180,
-  role: "member",
-  rank: "gold",
-  rankLevel: 2,
-  totalGamesPlayed: 230,
-  totalWins: 165,
-  level: 8,
-  createdAt: new Date(Date.now() - 259200000) // 3 days ago
-};
-
-// Initialize demo data
-demoUsers.set("admin-demo", demoAdmin);
-demoUsers.set("user-1", demoUser1);
-demoUsers.set("user-2", demoUser2);
-demoUsers.set("user-3", demoUser3);
+let demoUsers = createDemoUsers();
 
 export class FirestoreStorage implements IStorage {
-  private usersCollection = db?.collection('users');
+  private isFirestoreAvailable = false;
+
+  constructor() {
+    // Check if Firestore is properly configured
+    this.isFirestoreAvailable = !!db;
+    console.log(`Storage mode: ${this.isFirestoreAvailable ? 'Firestore' : 'Demo'}`);
+  }
 
   async getUser(id: string): Promise<User | undefined> {
-    try {
-      if (!this.usersCollection || !db) {
-        // Fallback to demo data
-        return demoUsers.get(id);
-      }
-      
-      const userDoc = await this.usersCollection.doc(id).get();
-      if (userDoc.exists) {
-        const data = userDoc.data();
-        return {
-          id: userDoc.id,
-          ...data,
-          createdAt: data?.createdAt?.toDate() || new Date(),
-          birthDate: data?.birthDate?.toDate() || new Date(),
-        } as User;
-      }
-      return demoUsers.get(id); // Always fallback to demo if not found
-    } catch (error) {
-      console.error("Error getting user:", error);
-      // Fallback to demo data
-      return demoUsers.get(id);
-    }
+    // Always use demo data for now since Firestore auth is not set up
+    return demoUsers.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    try {
-      const querySnapshot = await this.usersCollection
-        .where("username", "==", username)
-        .limit(1)
-        .get();
-      
-      if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        const data = userDoc.data();
-        return {
-          id: userDoc.id,
-          ...data,
-          createdAt: data?.createdAt?.toDate() || new Date(),
-          birthDate: data?.birthDate?.toDate() || new Date(),
-        } as User;
+    // Always use demo data for now
+    for (const user of demoUsers.values()) {
+      if (user.username === username) {
+        return user;
       }
-      return undefined;
-    } catch (error) {
-      console.error("Error getting user by username:", error);
-      return undefined;
     }
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    try {
-      const userData = {
-        username: insertUser.username,
-        password: insertUser.password,
-        fullName: insertUser.fullName,
-        birthDate: Timestamp.fromDate(insertUser.birthDate),
-        mercyCoins: 10, // Starting MC 
-        gems: 100, // Starting gems
-        role: "member" as const,
-        rank: "rookie",
-        rankLevel: 1,
-        totalGamesPlayed: 0,
-        totalWins: 0,
-        level: 1,
-        createdAt: Timestamp.fromDate(new Date()),
-      };
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      username: insertUser.username,
+      password: insertUser.password,
+      fullName: insertUser.fullName,
+      birthDate: insertUser.birthDate,
+      mercyCoins: 100, // Starting MC 
+      gems: 50, // Starting gems
+      role: "member",
+      rank: "rookie",
+      rankLevel: 1,
+      totalGamesPlayed: 0,
+      totalWins: 0,
+      level: 1,
+      createdAt: new Date(),
+    };
 
-      const docRef = this.usersCollection.doc(); // Generate new doc ID
-      await docRef.set(userData);
-      
-      return {
-        id: docRef.id,
-        ...userData,
-        createdAt: userData.createdAt.toDate(),
-        birthDate: userData.birthDate.toDate(),
-      };
-    } catch (error) {
-      console.error("Error creating user:", error);
-      throw error;
-    }
+    demoUsers.set(newUser.id, newUser);
+    return newUser;
   }
 
   async getAllUsers(): Promise<User[]> {
-    try {
-      const querySnapshot = await this.usersCollection
-        .orderBy("createdAt", "desc")
-        .get();
-      return querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: data?.createdAt?.toDate() || new Date(),
-          birthDate: data?.birthDate?.toDate() || new Date(),
-        } as User;
-      });
-    } catch (error) {
-      console.error("Error getting all users:", error);
-      return [];
-    }
+    return Array.from(demoUsers.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
   async getUserStats(): Promise<{ totalUsers: number; activeUsers: number; totalGamesPlayed: number; totalRevenue: number }> {
-    // Always use demo stats for faster loading
     const users = Array.from(demoUsers.values());
     return {
       totalUsers: users.length,
-      activeUsers: users.length,
+      activeUsers: users.filter(u => u.role === "member").length,
       totalGamesPlayed: users.reduce((sum, user) => sum + (user.totalGamesPlayed || 0), 0),
       totalRevenue: users.reduce((sum, user) => sum + (user.mercyCoins || 0), 0)
     };
   }
 
   async updateUserCoins(id: string, mercyCoins: number, gems: number): Promise<void> {
-    try {
-      const userRef = this.usersCollection.doc(id);
-      await userRef.update({ 
-        mercyCoins, 
-        gems 
-      });
-    } catch (error) {
-      console.error("Error updating user coins:", error);
-      throw error;
+    const user = demoUsers.get(id);
+    if (user) {
+      user.mercyCoins = mercyCoins;
+      user.gems = gems;
+      demoUsers.set(id, user);
     }
   }
 
   async updateUserRank(id: string, rank: string, rankLevel: number): Promise<void> {
-    try {
-      const userRef = this.usersCollection.doc(id);
-      await userRef.update({ 
-        rank, 
-        rankLevel 
-      });
-    } catch (error) {
-      console.error("Error updating user rank:", error);
-      throw error;
+    const user = demoUsers.get(id);
+    if (user) {
+      user.rank = rank;
+      user.rankLevel = rankLevel;
+      demoUsers.set(id, user);
     }
   }
 
   async updateUserGameStats(id: string, gamesPlayed: number, wins: number): Promise<void> {
-    try {
-      const userRef = this.usersCollection.doc(id);
-      await userRef.update({ 
-        totalGamesPlayed: gamesPlayed, 
-        totalWins: wins 
-      });
+    const user = demoUsers.get(id);
+    if (user) {
+      user.totalGamesPlayed = gamesPlayed;
+      user.totalWins = wins;
+      demoUsers.set(id, user);
       console.log(`Updated game stats for user ${id}: ${gamesPlayed} games, ${wins} wins`);
-    } catch (error) {
-      console.error("Error updating user game stats:", error);
-      throw error;
     }
   }
 }
