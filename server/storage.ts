@@ -5,7 +5,7 @@ import {
   doc, 
   getDoc, 
   getDocs, 
-  addDoc, 
+  setDoc,
   updateDoc, 
   query, 
   where, 
@@ -27,18 +27,18 @@ export interface IStorage {
 }
 
 export class FirestoreStorage implements IStorage {
-  private usersCollection = collection(db, 'users');
+  private usersCollection = db.collection('users');
 
   async getUser(id: string): Promise<User | undefined> {
     try {
-      const userDoc = await getDoc(doc(this.usersCollection, id));
-      if (userDoc.exists()) {
+      const userDoc = await this.usersCollection.doc(id).get();
+      if (userDoc.exists) {
         const data = userDoc.data();
         return {
           id: userDoc.id,
           ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          birthDate: data.birthDate?.toDate() || new Date(),
+          createdAt: data?.createdAt?.toDate() || new Date(),
+          birthDate: data?.birthDate?.toDate() || new Date(),
         } as User;
       }
       return undefined;
@@ -50,8 +50,10 @@ export class FirestoreStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      const q = query(this.usersCollection, where("username", "==", username), limit(1));
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await this.usersCollection
+        .where("username", "==", username)
+        .limit(1)
+        .get();
       
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
@@ -59,8 +61,8 @@ export class FirestoreStorage implements IStorage {
         return {
           id: userDoc.id,
           ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          birthDate: data.birthDate?.toDate() || new Date(),
+          createdAt: data?.createdAt?.toDate() || new Date(),
+          birthDate: data?.birthDate?.toDate() || new Date(),
         } as User;
       }
       return undefined;
@@ -88,7 +90,8 @@ export class FirestoreStorage implements IStorage {
         createdAt: Timestamp.fromDate(new Date()),
       };
 
-      const docRef = await addDoc(this.usersCollection, userData);
+      const docRef = this.usersCollection.doc(); // Generate new doc ID
+      await docRef.set(userData);
       
       return {
         id: docRef.id,
@@ -104,14 +107,16 @@ export class FirestoreStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     try {
-      const querySnapshot = await getDocs(query(this.usersCollection, orderBy("createdAt", "desc")));
+      const querySnapshot = await this.usersCollection
+        .orderBy("createdAt", "desc")
+        .get();
       return querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          birthDate: data.birthDate?.toDate() || new Date(),
+          createdAt: data?.createdAt?.toDate() || new Date(),
+          birthDate: data?.birthDate?.toDate() || new Date(),
         } as User;
       });
     } catch (error) {
@@ -122,7 +127,7 @@ export class FirestoreStorage implements IStorage {
 
   async getUserStats(): Promise<{ totalUsers: number; activeUsers: number }> {
     try {
-      const querySnapshot = await getDocs(this.usersCollection);
+      const querySnapshot = await this.usersCollection.get();
       const totalUsers = querySnapshot.size;
       
       // For now, consider all users as active
@@ -139,8 +144,8 @@ export class FirestoreStorage implements IStorage {
 
   async updateUserCoins(id: string, mercyCoins: number, gems: number): Promise<void> {
     try {
-      const userRef = doc(this.usersCollection, id);
-      await updateDoc(userRef, { 
+      const userRef = this.usersCollection.doc(id);
+      await userRef.update({ 
         mercyCoins, 
         gems 
       });
@@ -152,8 +157,8 @@ export class FirestoreStorage implements IStorage {
 
   async updateUserRank(id: string, rank: string, rankLevel: number): Promise<void> {
     try {
-      const userRef = doc(this.usersCollection, id);
-      await updateDoc(userRef, { 
+      const userRef = this.usersCollection.doc(id);
+      await userRef.update({ 
         rank, 
         rankLevel 
       });
@@ -165,8 +170,8 @@ export class FirestoreStorage implements IStorage {
 
   async updateUserGameStats(id: string, gamesPlayed: number, wins: number): Promise<void> {
     try {
-      const userRef = doc(this.usersCollection, id);
-      await updateDoc(userRef, { 
+      const userRef = this.usersCollection.doc(id);
+      await userRef.update({ 
         totalGamesPlayed: gamesPlayed, 
         totalWins: wins 
       });
