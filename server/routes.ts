@@ -115,7 +115,12 @@ router.get("/api/admin/stats", requireAuth, async (req: Request, res: Response) 
     }
 
     const stats = await storage.getUserStats();
-    res.json(stats);
+    res.json({
+      totalUsers: stats.totalUsers,
+      activeUsers: stats.activeUsers,
+      totalGamesPlayed: stats.totalGamesPlayed,
+      totalRevenue: stats.totalRevenue
+    });
   } catch (error) {
     console.error("Admin stats error:", error);
     res.status(500).json({ error: "Internal server error" });

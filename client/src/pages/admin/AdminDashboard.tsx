@@ -24,10 +24,16 @@ export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/stats');
+      const response = await fetch('/api/admin/stats', {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id || user?.firebaseUid || '',
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch stats');
       return response.json();
     },
+    enabled: !!user && user.role === 'admin', // Only fetch if user is admin
   });
 
   if (isLoading) {

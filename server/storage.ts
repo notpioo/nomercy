@@ -125,20 +125,32 @@ export class FirestoreStorage implements IStorage {
     }
   }
 
-  async getUserStats(): Promise<{ totalUsers: number; activeUsers: number }> {
+  async getUserStats(): Promise<{ totalUsers: number; activeUsers: number; totalGamesPlayed: number; totalRevenue: number }> {
     try {
       const querySnapshot = await this.usersCollection.get();
       const totalUsers = querySnapshot.size;
+      
+      let totalGamesPlayed = 0;
+      let totalRevenue = 0;
+      
+      // Calculate total games played and total mercy coins in circulation
+      querySnapshot.docs.forEach(doc => {
+        const userData = doc.data();
+        totalGamesPlayed += userData.totalGamesPlayed || 0;
+        totalRevenue += userData.mercyCoins || 0;
+      });
       
       // For now, consider all users as active
       // You can add logic to filter by last login date later
       return { 
         totalUsers, 
-        activeUsers: totalUsers 
+        activeUsers: totalUsers,
+        totalGamesPlayed,
+        totalRevenue
       };
     } catch (error) {
       console.error("Error getting user stats:", error);
-      return { totalUsers: 0, activeUsers: 0 };
+      return { totalUsers: 0, activeUsers: 0, totalGamesPlayed: 0, totalRevenue: 0 };
     }
   }
 
@@ -175,6 +187,7 @@ export class FirestoreStorage implements IStorage {
         totalGamesPlayed: gamesPlayed, 
         totalWins: wins 
       });
+      console.log(`Updated game stats for user ${id}: ${gamesPlayed} games, ${wins} wins`);
     } catch (error) {
       console.error("Error updating user game stats:", error);
       throw error;
