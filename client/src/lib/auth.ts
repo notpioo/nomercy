@@ -31,13 +31,13 @@ export const registerUser = async (userData: InsertUser): Promise<AuthUser> => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, userData.password);
     
     // Create user document in Firestore
-    const userDoc: User = {
-      id: 0, // Will be replaced with actual ID from database
+    const userDoc: Omit<User, 'id'> = {
       username: userData.username,
       password: "", // Don't store password in Firestore
       fullName: userData.fullName,
       birthDate: userData.birthDate,
-      mercyCoins: 0,
+      mercyCoins: 100,
+      gems: 10,
       role: "member",
       level: 1,
       createdAt: new Date(),
@@ -47,6 +47,7 @@ export const registerUser = async (userData: InsertUser): Promise<AuthUser> => {
 
     return {
       ...userDoc,
+      id: userCredential.user.uid,
       firebaseUid: userCredential.user.uid,
     };
   } catch (error: any) {
