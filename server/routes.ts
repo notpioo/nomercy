@@ -1,5 +1,5 @@
 
-import express, { type Request, Response, NextFunction } from "express";
+import express, { type Request, Response, NextFunction, type Application } from "express";
 import { storage } from "./storage";
 import type { InsertUser, LoginUser } from "@shared/schema";
 
@@ -140,5 +140,10 @@ router.get("/api/admin/users", requireAuth, async (req: Request, res: Response) 
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+export function registerRoutes(app: express.Application) {
+  app.use(router);
+  return app;
+}
 
 export default router;
