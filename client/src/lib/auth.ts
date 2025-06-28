@@ -36,8 +36,8 @@ export const registerUser = async (userData: InsertUser): Promise<AuthUser> => {
       password: "", // Don't store password in Firestore
       fullName: userData.fullName,
       birthDate: userData.birthDate,
-      mercyCoins: 100,
-      gems: 10,
+      mercyCoins: 10, // Reduced from 100
+      gems: 100, // Increased from 10
       role: "member",
       level: 1,
       createdAt: new Date(),

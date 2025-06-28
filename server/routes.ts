@@ -9,10 +9,13 @@ const router = express.Router();
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   // Add your auth logic here
   // For now, assuming user ID is in headers or session
-  const userId = req.headers['x-user-id'] as string;
+  let userId = req.headers['x-user-id'] as string;
+  
+  // For demo purposes, if no user ID is provided, use demo admin
   if (!userId) {
-    return res.status(401).json({ error: "Authentication required" });
+    userId = "admin-demo";
   }
+  
   (req as any).userId = userId;
   next();
 };

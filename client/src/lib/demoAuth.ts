@@ -9,7 +9,26 @@ export interface DemoAuthUser extends User {
 let demoUsers: Map<string, DemoAuthUser> = new Map();
 let currentDemoUser: DemoAuthUser | null = null;
 
-// Initialize with a demo user
+// Demo admin user for testing
+const demoAdminUser: DemoAuthUser = {
+  id: "admin-demo",
+  firebaseUid: "admin-demo",
+  username: "admin",
+  password: "admin123",
+  fullName: "Admin Demo",
+  birthDate: new Date("1990-01-01"),
+  mercyCoins: 1000,
+  gems: 500,
+  role: "admin",
+  rank: "diamond",
+  rankLevel: 3,
+  totalGamesPlayed: 50,
+  totalWins: 30,
+  level: 10,
+  createdAt: new Date()
+};
+
+// Initialize with demo users
 const demoUserData: DemoAuthUser = {
   id: 1,
   username: "demo",

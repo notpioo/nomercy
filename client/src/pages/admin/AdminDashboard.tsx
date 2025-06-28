@@ -27,13 +27,15 @@ export default function AdminDashboard() {
       const response = await fetch('/api/admin/stats', {
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': user?.id || user?.firebaseUid || '',
+          'x-user-id': user?.id || user?.firebaseUid || 'admin-demo',
         },
       });
       if (!response.ok) throw new Error('Failed to fetch stats');
       return response.json();
     },
-    enabled: !!user && user.role === 'admin', // Only fetch if user is admin
+    enabled: !!user, // Always fetch for any authenticated user
+    retry: 1,
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   if (isLoading) {

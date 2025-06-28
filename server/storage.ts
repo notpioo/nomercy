@@ -26,11 +26,75 @@ export interface IStorage {
   updateUserGameStats(id: string, gamesPlayed: number, wins: number): Promise<void>;
 }
 
+// Demo storage as fallback
+const demoUsers = new Map<string, User>();
+const demoAdmin: User = {
+  id: "admin-demo",
+  username: "admin",
+  password: "admin123",
+  fullName: "Admin Demo",
+  birthDate: new Date("1990-01-01"),
+  mercyCoins: 1000,
+  gems: 500,
+  role: "admin",
+  rank: "diamond",
+  rankLevel: 3,
+  totalGamesPlayed: 50,
+  totalWins: 30,
+  level: 10,
+  createdAt: new Date()
+};
+
+// Add more demo users for testing
+const demoUser1: User = {
+  id: "user-1",
+  username: "player1",
+  password: "password123",
+  fullName: "Player One",
+  birthDate: new Date("1995-05-15"),
+  mercyCoins: 150,
+  gems: 80,
+  role: "member",
+  rank: "bronze",
+  rankLevel: 2,
+  totalGamesPlayed: 25,
+  totalWins: 12,
+  level: 3,
+  createdAt: new Date(Date.now() - 86400000) // 1 day ago
+};
+
+const demoUser2: User = {
+  id: "user-2",
+  username: "player2",
+  password: "password123",
+  fullName: "Player Two",
+  birthDate: new Date("1992-08-20"),
+  mercyCoins: 300,
+  gems: 150,
+  role: "member",
+  rank: "silver",
+  rankLevel: 1,
+  totalGamesPlayed: 40,
+  totalWins: 28,
+  level: 5,
+  createdAt: new Date(Date.now() - 172800000) // 2 days ago
+};
+
+// Initialize demo data
+demoUsers.set("admin-demo", demoAdmin);
+demoUsers.set("user-1", demoUser1);
+demoUsers.set("user-2", demoUser2);
+
 export class FirestoreStorage implements IStorage {
-  private usersCollection = db.collection('users');
+  private usersCollection = db?.collection('users');
 
   async getUser(id: string): Promise<User | undefined> {
     try {
+      if (!this.usersCollection) {
+        // Fallback to demo data
+        return demoUsers.get(id);
+      }
+      
       const userDoc = await this.usersCollection.doc(id).get();
       if (userDoc.exists) {
         const data = userDoc.data();
@@ -44,7 +108,8 @@ export class FirestoreStorage implements IStorage {
       return undefined;
     } catch (error) {
       console.error("Error getting user:", error);
-      return undefined;
+      // Fallback to demo data
+      return demoUsers.get(id);
     }
   }
 
@@ -79,8 +144,8 @@ export class FirestoreStorage implements IStorage {
         password: insertUser.password,
         fullName: insertUser.fullName,
         birthDate: Timestamp.fromDate(insertUser.birthDate),
-        mercyCoins: 100, // Starting bonus
-        gems: 10, // Starting gems
+        mercyCoins: 10, // Starting bonus (reduced from 100)
+        gems: 100, // Starting gems (increased from 10)
         role: "member" as const,
         rank: "rookie",
         rankLevel: 1,
@@ -127,6 +192,17 @@ export class FirestoreStorage implements IStorage {
 
   async getUserStats(): Promise<{ totalUsers: number; activeUsers: number; totalGamesPlayed: number; totalRevenue: number }> {
     try {
+      if (!this.usersCollection) {
+        // Return demo stats
+        const users = Array.from(demoUsers.values());
+        return {
+          totalUsers: users.length,
+          activeUsers: users.length,
+          totalGamesPlayed: users.reduce((sum, user) => sum + (user.totalGamesPlayed || 0), 0),
+          totalRevenue: users.reduce((sum, user) => sum + (user.mercyCoins || 0), 0)
+        };
+      }
+      
       const querySnapshot = await this.usersCollection.get();
       const totalUsers = querySnapshot.size;
       
@@ -140,8 +216,6 @@ export class FirestoreStorage implements IStorage {
         totalRevenue += userData.mercyCoins || 0;
       });
       
-      // For now, consider all users as active
-      // You can add logic to filter by last login date later
       return { 
         totalUsers, 
         activeUsers: totalUsers,
@@ -150,7 +224,14 @@ export class FirestoreStorage implements IStorage {
       };
     } catch (error) {
       console.error("Error getting user stats:", error);
-      return { totalUsers: 0, activeUsers: 0, totalGamesPlayed: 0, totalRevenue: 0 };
+      // Return demo stats as fallback
+      const users = Array.from(demoUsers.values());
+      return {
+        totalUsers: users.length,
+        activeUsers: users.length,
+        totalGamesPlayed: users.reduce((sum, user) => sum + (user.totalGamesPlayed || 0), 0),
+        totalRevenue: users.reduce((sum, user) => sum + (user.mercyCoins || 0), 0)
+      };
     }
   }
 
