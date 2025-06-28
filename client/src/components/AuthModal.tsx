@@ -5,26 +5,27 @@ import { z } from "zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { registerUser, loginUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Separate schemas for login and register forms
-const loginFormSchema = z.object({
+// Schema untuk form login
+const loginSchema = z.object({
   username: z.string().min(1, "Username harus diisi"),
   password: z.string().min(1, "Password harus diisi"),
 });
 
-const registerFormSchema = z.object({
+// Schema untuk form register
+const registerSchema = z.object({
   username: z.string().min(3, "Username minimal 3 karakter"),
-  fullName: z.string().min(1, "Nama lengkap harus diisi"),
+  fullName: z.string().min(2, "Nama lengkap minimal 2 karakter"),
   birthDate: z.string().min(1, "Tanggal lahir harus diisi"),
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
-type LoginFormData = z.infer<typeof loginFormSchema>;
-type RegisterFormData = z.infer<typeof registerFormSchema>;
+type LoginData = z.infer<typeof loginSchema>;
+type RegisterData = z.infer<typeof registerSchema>;
 
 interface AuthModalProps {
   open: boolean;
@@ -37,26 +38,27 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const { setUser } = useAuth();
   const { toast } = useToast();
 
-  // Separate form instances
-  const loginForm = useForm<LoginFormData>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
+  // Form untuk login
+  const {
+    register: loginRegister,
+    handleSubmit: loginHandleSubmit,
+    formState: { errors: loginErrors },
+    reset: loginReset,
+  } = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
   });
 
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerFormSchema),
-    defaultValues: {
-      username: "",
-      fullName: "",
-      birthDate: "",
-      password: "",
-    },
+  // Form untuk register
+  const {
+    register: registerRegister,
+    handleSubmit: registerHandleSubmit,
+    formState: { errors: registerErrors },
+    reset: registerReset,
+  } = useForm<RegisterData>({
+    resolver: zodResolver(registerSchema),
   });
 
-  const handleLogin = async (data: LoginFormData) => {
+  const onLoginSubmit = async (data: LoginData) => {
     setIsLoading(true);
     try {
       const user = await loginUser({
@@ -65,11 +67,11 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
       });
       setUser(user);
       onOpenChange(false);
+      loginReset();
       toast({
-        title: "Selamat datang kembali!",
-        description: `Login sebagai ${user.username}`,
+        title: "Login berhasil!",
+        description: `Selamat datang kembali, ${user.username}`,
       });
-      loginForm.reset();
     } catch (error: any) {
       toast({
         title: "Login gagal",
@@ -81,7 +83,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   };
 
-  const handleRegister = async (data: RegisterFormData) => {
+  const onRegisterSubmit = async (data: RegisterData) => {
     setIsLoading(true);
     try {
       const user = await registerUser({
@@ -92,11 +94,11 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
       });
       setUser(user);
       onOpenChange(false);
+      registerReset();
       toast({
-        title: "Selamat datang di NoMercy!",
-        description: "Akun Anda berhasil dibuat.",
+        title: "Registrasi berhasil!",
+        description: "Selamat datang di NoMercy!",
       });
-      registerForm.reset();
     } catch (error: any) {
       toast({
         title: "Registrasi gagal",
@@ -108,10 +110,10 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   };
 
-  const switchMode = () => {
+  const toggleMode = () => {
     setIsLogin(!isLogin);
-    loginForm.reset();
-    registerForm.reset();
+    loginReset();
+    registerReset();
   };
 
   return (
@@ -124,149 +126,138 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
         </DialogHeader>
 
         {isLogin ? (
-          <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-              <FormField
-                control={loginForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-300">Username</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          placeholder="Masukkan username Anda"
-                          className="bg-slate-700 border-slate-600 text-slate-50 pr-24"
-                          {...field}
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
-                          @gmail.com
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          // Form Login
+          <form onSubmit={loginHandleSubmit(onLoginSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="login-username" className="text-slate-300">
+                Username
+              </Label>
+              <div className="relative">
+                <Input
+                  id="login-username"
+                  type="text"
+                  placeholder="Masukkan username"
+                  className="bg-slate-700 border-slate-600 text-slate-50 pr-24"
+                  {...loginRegister("username")}
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
+                  @gmail.com
+                </div>
+              </div>
+              {loginErrors.username && (
+                <p className="text-red-400 text-sm">{loginErrors.username.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="login-password" className="text-slate-300">
+                Password
+              </Label>
+              <Input
+                id="login-password"
+                type="password"
+                placeholder="Masukkan password"
+                className="bg-slate-700 border-slate-600 text-slate-50"
+                {...loginRegister("password")}
               />
-              <FormField
-                control={loginForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-300">Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Masukkan password Anda"
-                        className="bg-slate-700 border-slate-600 text-slate-50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-indigo-500 hover:bg-indigo-600"
-                disabled={isLoading}
-              >
-                {isLoading ? "Masuk..." : "Masuk"}
-              </Button>
-            </form>
-          </Form>
+              {loginErrors.password && (
+                <p className="text-red-400 text-sm">{loginErrors.password.message}</p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-indigo-500 hover:bg-indigo-600"
+              disabled={isLoading}
+            >
+              {isLoading ? "Masuk..." : "Masuk"}
+            </Button>
+          </form>
         ) : (
-          <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-              <FormField
-                control={registerForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-300">Username</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          placeholder="Pilih username"
-                          className="bg-slate-700 border-slate-600 text-slate-50 pr-24"
-                          {...field}
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
-                          @gmail.com
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          // Form Register
+          <form onSubmit={registerHandleSubmit(onRegisterSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="register-username" className="text-slate-300">
+                Username
+              </Label>
+              <div className="relative">
+                <Input
+                  id="register-username"
+                  type="text"
+                  placeholder="Pilih username"
+                  className="bg-slate-700 border-slate-600 text-slate-50 pr-24"
+                  {...registerRegister("username")}
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
+                  @gmail.com
+                </div>
+              </div>
+              {registerErrors.username && (
+                <p className="text-red-400 text-sm">{registerErrors.username.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="register-fullname" className="text-slate-300">
+                Nama Lengkap
+              </Label>
+              <Input
+                id="register-fullname"
+                type="text"
+                placeholder="Masukkan nama lengkap"
+                className="bg-slate-700 border-slate-600 text-slate-50"
+                {...registerRegister("fullName")}
               />
-              <FormField
-                control={registerForm.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-300">Nama Lengkap</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Masukkan nama lengkap Anda"
-                        className="bg-slate-700 border-slate-600 text-slate-50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              {registerErrors.fullName && (
+                <p className="text-red-400 text-sm">{registerErrors.fullName.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="register-birthdate" className="text-slate-300">
+                Tanggal Lahir
+              </Label>
+              <Input
+                id="register-birthdate"
+                type="date"
+                className="bg-slate-700 border-slate-600 text-slate-50"
+                {...registerRegister("birthDate")}
               />
-              <FormField
-                control={registerForm.control}
-                name="birthDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-300">Tanggal Lahir</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        className="bg-slate-700 border-slate-600 text-slate-50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              {registerErrors.birthDate && (
+                <p className="text-red-400 text-sm">{registerErrors.birthDate.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="register-password" className="text-slate-300">
+                Password
+              </Label>
+              <Input
+                id="register-password"
+                type="password"
+                placeholder="Buat password"
+                className="bg-slate-700 border-slate-600 text-slate-50"
+                {...registerRegister("password")}
               />
-              <FormField
-                control={registerForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-300">Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Buat password"
-                        className="bg-slate-700 border-slate-600 text-slate-50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-violet-500 hover:bg-violet-600"
-                disabled={isLoading}
-              >
-                {isLoading ? "Membuat Akun..." : "Buat Akun"}
-              </Button>
-            </form>
-          </Form>
+              {registerErrors.password && (
+                <p className="text-red-400 text-sm">{registerErrors.password.message}</p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-violet-500 hover:bg-violet-600"
+              disabled={isLoading}
+            >
+              {isLoading ? "Membuat Akun..." : "Buat Akun"}
+            </Button>
+          </form>
         )}
 
         <div className="text-center">
           <Button
             variant="link"
-            onClick={switchMode}
+            onClick={toggleMode}
             className="text-indigo-400 hover:text-indigo-300"
           >
             {isLogin ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
