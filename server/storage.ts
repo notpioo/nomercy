@@ -117,6 +117,7 @@ const createDemoUsers = (): Map<string, User> => {
   ];
 
   users.set(demoAdmin.id, demoAdmin);
+  users.set("admin-demo", demoAdmin); // Alternative ID for consistency
   demoUsers.forEach(user => users.set(user.id, user));
 
   return users;
@@ -131,6 +132,69 @@ export class FirestoreStorage implements IStorage {
     // Check if Firestore is properly configured
     this.isFirestoreAvailable = !!db;
     console.log(`Storage mode: ${this.isFirestoreAvailable ? 'Firestore' : 'Demo'}`);
+    
+    // Add more realistic demo data for admin dashboard
+    this.addRealisticDemoData();
+  }
+
+  private addRealisticDemoData() {
+    // Add more demo users for better statistics
+    const additionalUsers = [
+      {
+        id: "user-6",
+        username: "gamer123",
+        password: "password123",
+        fullName: "John Walker",
+        birthDate: new Date("1997-04-12"),
+        mercyCoins: 750,
+        gems: 85,
+        role: "member" as const,
+        rank: "bronze",
+        rankLevel: 3,
+        totalGamesPlayed: 45,
+        totalWins: 23,
+        level: 4,
+        createdAt: new Date(Date.now() - 518400000)
+      },
+      {
+        id: "user-7", 
+        username: "pro_player",
+        password: "password123",
+        fullName: "Lisa Anderson",
+        birthDate: new Date("1994-09-28"),
+        mercyCoins: 1850,
+        gems: 195,
+        role: "member" as const,
+        rank: "silver",
+        rankLevel: 2,
+        totalGamesPlayed: 128,
+        totalWins: 87,
+        level: 7,
+        createdAt: new Date(Date.now() - 604800000)
+      },
+      {
+        id: "user-8",
+        username: "lucky_seven",
+        password: "password123", 
+        fullName: "Mark Thompson",
+        birthDate: new Date("1991-12-03"),
+        mercyCoins: 3150,
+        gems: 275,
+        role: "member" as const,
+        rank: "gold",
+        rankLevel: 3,
+        totalGamesPlayed: 267,
+        totalWins: 198,
+        level: 11,
+        createdAt: new Date(Date.now() - 691200000)
+      }
+    ];
+
+    additionalUsers.forEach(user => {
+      if (!demoUsers.has(user.id)) {
+        demoUsers.set(user.id, user);
+      }
+    });
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -178,9 +242,20 @@ export class FirestoreStorage implements IStorage {
 
   async getUserStats(): Promise<{ totalUsers: number; activeUsers: number; totalGamesPlayed: number; totalRevenue: number }> {
     const users = Array.from(demoUsers.values());
+    const memberUsers = users.filter(u => u.role === "member");
+    
+    // Calculate more realistic active users (simulate some being online)
+    const recentTime = Date.now() - (24 * 60 * 60 * 1000); // Last 24 hours
+    const potentiallyActive = memberUsers.filter(u => 
+      new Date(u.createdAt).getTime() > recentTime || 
+      (u.totalGamesPlayed || 0) > 10
+    );
+    
+    const activeUsers = Math.max(1, Math.floor(potentiallyActive.length * 0.6)); // 60% of potential users
+    
     return {
       totalUsers: users.length,
-      activeUsers: users.filter(u => u.role === "member").length,
+      activeUsers: activeUsers,
       totalGamesPlayed: users.reduce((sum, user) => sum + (user.totalGamesPlayed || 0), 0),
       totalRevenue: users.reduce((sum, user) => sum + (user.mercyCoins || 0), 0)
     };

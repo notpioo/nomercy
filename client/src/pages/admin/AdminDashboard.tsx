@@ -34,21 +34,33 @@ export default function AdminDashboard() {
     return null;
   }
 
-  const { data: stats, isLoading } = useQuery<AdminStats>({
+  const { data: stats, isLoading, error, refetch } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
     queryFn: async () => {
+      const userId = user?.id || user?.firebaseUid || 'admin-demo';
+      console.log('Fetching admin stats with user ID:', userId);
+      
       const response = await fetch('/api/admin/stats', {
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': user?.id || user?.firebaseUid || 'admin-demo',
+          'x-user-id': userId,
         },
       });
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      return response.json();
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Admin stats fetch failed:', response.status, errorData);
+        throw new Error(`Failed to fetch stats: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Received admin stats:', data);
+      return data;
     },
     enabled: !!user,
-    retry: 1,
-    staleTime: 10000, // Cache for 10 seconds for faster loading
+    retry: 3,
+    staleTime: 5000,
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   if (isLoading) {
@@ -62,6 +74,31 @@ export default function AdminDashboard() {
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-32 bg-slate-800 rounded-lg"></div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+            <p className="text-red-400 mt-1">Error loading dashboard data</p>
+          </div>
+          <button 
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <p className="text-red-400">Failed to load admin statistics. Please try again.</p>
+          <p className="text-red-300 text-sm mt-1">Error: {error.message}</p>
         </div>
       </div>
     );
@@ -119,10 +156,18 @@ export default function AdminDashboard() {
           </h1>
           <p className="text-slate-400 mt-1">Real-time platform overview</p>
         </div>
-        <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">
-          <Activity className="w-3 h-3 mr-1" />
-          Live
-        </Badge>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => refetch()}
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+          >
+            Refresh
+          </button>
+          <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">
+            <Activity className="w-3 h-3 mr-1" />
+            Live
+          </Badge>
+        </div>
       </div>
 
       {/* Quick Stats Grid */}
