@@ -172,7 +172,7 @@ export default function AdminDashboard() {
               <div className="text-sm text-slate-400 mt-4 space-y-1">
                 <p>• MC: Earned from games, used for betting</p>
                 <p>• Gems: Rank rewards, special purchases</p>
-                <p>• New users start with 100 MC + 10 Gems</p>
+                <p>• New users start with 10 MC + 100 Gems</p>
               </div>
             </div>
           </CardContent>

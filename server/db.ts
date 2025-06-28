@@ -19,13 +19,6 @@ try {
 
   db = getFirestore(firebaseApp);
   
-  // For development, set Firestore settings to work without authentication
-  db.settings({
-    host: 'localhost:8080',
-    ssl: false,
-    experimentalForceLongPolling: true,
-  });
-  
   console.log("Firestore initialized successfully");
 } catch (error) {
   console.error("Firestore initialization error:", error);
