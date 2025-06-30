@@ -5,6 +5,26 @@ import type { InsertUser, LoginUser } from "@shared/schema";
 
 const router = express.Router();
 
+// Health check endpoint for Railway
+router.get("/", (req: Request, res: Response) => {
+  res.status(200).json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    service: "NoMercy Gaming Platform",
+    version: "1.0.0"
+  });
+});
+
+router.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    nodeVersion: process.version
+  });
+});
+
 // Auth middleware - extract Firebase UID from headers
 const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {

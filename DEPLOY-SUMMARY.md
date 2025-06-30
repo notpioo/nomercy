@@ -36,16 +36,15 @@
 ```bash
 git init
 git add .
-git commit -m "Ready for Railway deployment"
+git commit -m "Ready for Railway deployment with PostgreSQL"
 git remote add origin <your-github-repo>
 git push -u origin main
 ```
 
-2. **Setup Railway**:
-   - Buka railway.app
-   - New Project → Deploy from GitHub
-   - Pilih repository
-   - Add PostgreSQL database
+2. **Setup Railway** (SUDAH SELESAI ✅):
+   - ✅ PostgreSQL database sudah running di asia-southeast1
+   - ✅ Connection string: turntable.proxy.rlwy.net  
+   - ✅ Aplikasi siap connect ke database Railway
 
 3. **Environment Variables** (Copy dari Firebase):
 ```

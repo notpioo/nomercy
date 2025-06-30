@@ -60,12 +60,19 @@ app.use((req, res, next) => {
   }
 
   // Use environment port for production deployment compatibility
-  const port = process.env.PORT || 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  const port = parseInt(process.env.PORT || "5000", 10);
+  
+  // Set server timeouts for better production stability
+  server.timeout = 120000; // 2 minutes
+  server.keepAliveTimeout = 65000; // 65 seconds
+  server.headersTimeout = 66000; // 66 seconds
+  
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    log(`Server ready for connections`);
+  }).on('error', (err) => {
+    console.error('Server failed to start:', err);
+    process.exit(1);
   });
 })();
