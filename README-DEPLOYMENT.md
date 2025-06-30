@@ -20,6 +20,13 @@
    git push -u origin main
    ```
 
+   **PENTING: Pastikan file berikut sudah ada sebelum push:**
+   - `railway.json` - Konfigurasi Railway
+   - `nixpacks.toml` - Build configuration  
+   - `Procfile` - Process file
+   - `.env.example` - Template environment variables
+   - `Dockerfile` - Container configuration
+
 2. **Setup Railway**
    - Buka [Railway.app](https://railway.app)
    - Login dengan GitHub
