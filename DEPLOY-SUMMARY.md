@@ -36,15 +36,16 @@
 ```bash
 git init
 git add .
-git commit -m "Ready for Railway deployment with PostgreSQL"
+git commit -m "Ready for Railway deployment - Firebase only"
 git remote add origin <your-github-repo>
 git push -u origin main
 ```
 
-2. **Setup Railway** (SUDAH SELESAI ✅):
-   - ✅ PostgreSQL database sudah running di asia-southeast1
-   - ✅ Connection string: turntable.proxy.rlwy.net  
-   - ✅ Aplikasi siap connect ke database Railway
+2. **Setup Railway** (DISEDERHANAKAN ✅):
+   - ❌ PostgreSQL dihapus untuk mengatasi network issues
+   - ✅ Firebase/Firestore sebagai database utama
+   - ✅ No network dependency checks
+   - ✅ Aplikasi lebih stabil untuk deployment
 
 3. **Environment Variables** (Copy dari Firebase):
 ```
