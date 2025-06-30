@@ -25,6 +25,10 @@ if (hasFirebaseConfig) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    
+    // Make auth available globally for API requests
+    (window as any).firebaseAuth = auth;
+    
     console.log("Firebase initialized successfully");
   } catch (error) {
     console.error("Firebase initialization error:", error);

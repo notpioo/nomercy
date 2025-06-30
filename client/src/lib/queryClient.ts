@@ -1,27 +1,42 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { auth, hasFirebaseConfig } from "./firebase";
 
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
-  }
-}
+const API_BASE_URL = "/";
 
-export async function apiRequest(
+export const apiRequest = async (
   method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  endpoint: string,
+  body?: any
+): Promise<Response> => {
+  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint.slice(1) : endpoint}`;
 
-  await throwIfResNotOk(res);
-  return res;
-}
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add user authentication header
+  if (hasFirebaseConfig && auth?.currentUser) {
+    headers['x-user-id'] = auth.currentUser.uid;
+  } else {
+    // For demo mode, get user from localStorage
+    const demoUser = localStorage.getItem('demoUser');
+    if (demoUser) {
+      const userData = JSON.parse(demoUser);
+      headers['x-user-id'] = userData.id || userData.firebaseUid;
+    }
+  }
+
+  const options: RequestInit = {
+    method,
+    headers,
+  };
+
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  return fetch(url, options);
+};
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {

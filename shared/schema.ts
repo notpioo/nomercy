@@ -58,3 +58,116 @@ export interface ChatMessage {
   message: string;
   timestamp: Date;
 }
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  questions: QuizQuestion[];
+  reward: {
+    mercyCoins: number;
+    gems: number;
+  };
+  timeLimit: number; // in minutes
+  maxAttempts: number;
+  isActive: boolean;
+  startDate: Date;
+  endDate: Date;
+  createdAt: Date;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number; // index of correct option
+  points: number;
+}
+
+export interface RedeemCode {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  reward: {
+    mercyCoins: number;
+    gems: number;
+  };
+  maxUses: number;
+  currentUses: number;
+  isActive: boolean;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface GameSettings {
+  id: string;
+  gameType: "coinflip" | "mine" | "tower";
+  settings: {
+    minBet: number;
+    maxBet: number;
+    houseEdge: number;
+    multipliers?: number[];
+    difficultyLevels?: {
+      name: string;
+      mines: number;
+      multiplier: number;
+    }[];
+    towerLevels?: {
+      level: number;
+      multiplier: number;
+      difficulty: number;
+    }[];
+  };
+  isActive: boolean;
+  updatedAt: Date;
+}
+
+export interface InsertQuiz {
+  title: string;
+  description: string;
+  questions: QuizQuestion[];
+  reward: {
+    mercyCoins: number;
+    gems: number;
+  };
+  timeLimit: number;
+  maxAttempts: number;
+  isActive: boolean;
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface InsertRedeemCode {
+  code: string;
+  title: string;
+  description: string;
+  reward: {
+    mercyCoins: number;
+    gems: number;
+  };
+  maxUses: number;
+  isActive: boolean;
+  expiresAt: Date;
+}
+
+export interface InsertGameSettings {
+  gameType: "coinflip" | "mine" | "tower";
+  settings: {
+    minBet: number;
+    maxBet: number;
+    houseEdge: number;
+    multipliers?: number[];
+    difficultyLevels?: {
+      name: string;
+      mines: number;
+      multiplier: number;
+    }[];
+    towerLevels?: {
+      level: number;
+      multiplier: number;
+      difficulty: number;
+    }[];
+  };
+  isActive: boolean;
+}

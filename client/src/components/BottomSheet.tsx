@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Newspaper, UserCog, Trophy, Bomb, Building, Coins, Settings } from "lucide-react";
+import { Newspaper, UserCog, Trophy, Bomb, Building, Coins, Settings, Brain, Gift } from "lucide-react";
 
 interface BottomSheetProps {
   open: boolean;
@@ -22,6 +22,33 @@ export default function BottomSheet({ open, onOpenChange, userRole }: BottomShee
         </SheetHeader>
         
         <div className="space-y-6 mt-6">
+          {/* Main Section */}
+          <div>
+            <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Main</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/quiz">
+                <Button
+                  variant="ghost"
+                  onClick={handleLinkClick}
+                  className="w-full bg-slate-700 hover:bg-slate-600 p-4 rounded-xl transition-colors text-center h-auto flex-col"
+                >
+                  <Brain className="w-6 h-6 text-green-400 mb-2" />
+                  <div className="text-sm font-medium">Quiz</div>
+                </Button>
+              </Link>
+              <Link href="/redeem">
+                <Button
+                  variant="ghost"
+                  onClick={handleLinkClick}
+                  className="w-full bg-slate-700 hover:bg-slate-600 p-4 rounded-xl transition-colors text-center h-auto flex-col"
+                >
+                  <Gift className="w-6 h-6 text-green-400 mb-2" />
+                  <div className="text-sm font-medium">Redeem</div>
+                </Button>
+              </Link>
+            </div>
+          </div>
+
           {/* Squad Section */}
           <div>
             <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Squad</h4>

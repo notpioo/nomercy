@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Users, 
   TrendingUp, 
@@ -12,10 +13,17 @@ import {
   Activity,
   Crown,
   Target,
-  Zap
+  Zap,
+  UserCog,
+  Shield,
+  Gamepad2,
+  Brain,
+  Gift,
+  Settings,
+  ChevronRight
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 interface AdminStats {
   totalUsers: number;
@@ -279,6 +287,109 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Admin Navigation */}
+      <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-slate-50 flex items-center gap-2">
+            <Settings className="h-5 w-5 text-indigo-400" />
+            Admin Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/admin/users">
+              <Button variant="ghost" className="w-full justify-start h-auto p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <UserCog className="h-5 w-5 text-blue-400" />
+                    <div className="text-left">
+                      <div className="font-medium">Users</div>
+                      <div className="text-xs text-slate-400">Manage all users</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </Button>
+            </Link>
+
+            <Link href="/admin/squad">
+              <Button variant="ghost" className="w-full justify-start h-auto p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-green-400" />
+                    <div className="text-left">
+                      <div className="font-medium">Squad</div>
+                      <div className="text-xs text-slate-400">Coming soon</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </Button>
+            </Link>
+
+            <Link href="/admin/casino">
+              <Button variant="ghost" className="w-full justify-start h-auto p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <Gamepad2 className="h-5 w-5 text-purple-400" />
+                    <div className="text-left">
+                      <div className="font-medium">Casino</div>
+                      <div className="text-xs text-slate-400">Game settings</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </Button>
+            </Link>
+
+            <Link href="/admin/quiz">
+              <Button variant="ghost" className="w-full justify-start h-auto p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <Brain className="h-5 w-5 text-orange-400" />
+                    <div className="text-left">
+                      <div className="font-medium">Quiz</div>
+                      <div className="text-xs text-slate-400">Manage quizzes</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </Button>
+            </Link>
+
+            <Link href="/admin/redeem">
+              <Button variant="ghost" className="w-full justify-start h-auto p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <Gift className="h-5 w-5 text-pink-400" />
+                    <div className="text-left">
+                      <div className="font-medium">Redeem</div>
+                      <div className="text-xs text-slate-400">Redeem codes</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </Button>
+            </Link>
+
+            <Link href="/admin/settings">
+              <Button variant="ghost" className="w-full justify-start h-auto p-4 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <Settings className="h-5 w-5 text-gray-400" />
+                    <div className="text-left">
+                      <div className="font-medium">Settings</div>
+                      <div className="text-xs text-slate-400">System config</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

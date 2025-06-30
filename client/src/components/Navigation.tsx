@@ -139,6 +139,20 @@ export default function Navigation() {
                     Coinflip
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-slate-700" />
+                <div className="px-4 py-2 text-sm font-medium text-slate-400 uppercase tracking-wide">Main</div>
+                <DropdownMenuItem asChild>
+                  <Link href="/quiz">
+                    <Dice1 className="w-4 h-4 mr-2" />
+                    Quiz
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/redeem">
+                    <Coins className="w-4 h-4 mr-2" />
+                    Redeem
+                  </Link>
+                </DropdownMenuItem>
                 {user?.role === "admin" && (
                   <>
                     <DropdownMenuSeparator className="bg-slate-700" />

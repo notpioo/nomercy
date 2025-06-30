@@ -7,6 +7,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   setUser: (user: AuthUser | null) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +27,19 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshUser = async () => {
+    if (!hasFirebaseConfig) {
+      const demoUser = await getCurrentUser();
+      setUser(demoUser);
+      return;
+    }
+
+    if (auth?.currentUser) {
+      const userData = await getCurrentUser(auth.currentUser);
+      setUser(userData);
+    }
+  };
 
   useEffect(() => {
     if (!hasFirebaseConfig) {
@@ -47,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       try {
         setLoading(true);
-        
+
         if (firebaseUser) {
           const userData = await getCurrentUser(firebaseUser);
           setUser(userData);
@@ -69,6 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     loading,
     setUser,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

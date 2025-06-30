@@ -73,24 +73,24 @@ export const demoRegisterUser = async (userData: InsertUser): Promise<DemoAuthUs
 
   demoUsers.set(userData.username, newUser);
   currentDemoUser = newUser;
-  
+
   // Store in localStorage for persistence
   localStorage.setItem('demoUsers', JSON.stringify(Array.from(demoUsers.entries())));
   localStorage.setItem('currentDemoUser', JSON.stringify(newUser));
-  
+
   return newUser;
 };
 
 export const demoLoginUser = async (credentials: LoginUser): Promise<DemoAuthUser> => {
   const user = demoUsers.get(credentials.username);
-  
+
   if (!user || user.password !== credentials.password) {
     throw new Error("Invalid username or password");
   }
 
   currentDemoUser = user;
   localStorage.setItem('currentDemoUser', JSON.stringify(user));
-  
+
   return user;
 };
 
@@ -99,21 +99,22 @@ export const demoLogoutUser = async (): Promise<void> => {
   localStorage.removeItem('currentDemoUser');
 };
 
-export const getDemoCurrentUser = (): DemoAuthUser | null => {
-  if (currentDemoUser) return currentDemoUser;
-  
-  // Try to restore from localStorage
-  const stored = localStorage.getItem('currentDemoUser');
-  if (stored) {
-    try {
-      currentDemoUser = JSON.parse(stored);
-      return currentDemoUser;
-    } catch (error) {
-      console.error("Error parsing stored demo user:", error);
-    }
+export const getDemoCurrentUser = async (): Promise<DemoAuthUser | null> => {
+  const userStr = localStorage.getItem('demoUser');
+  if (!userStr) return null;
+
+  try {
+    const user = JSON.parse(userStr);
+    // Ensure consistent ID format for demo users
+    const userId = user.firebaseUid || user.id || `demo-${user.username}`;
+    return {
+      ...user,
+      id: userId,
+      firebaseUid: userId,
+    };
+  } catch {
+    return null;
   }
-  
-  return null;
 };
 
 export const updateDemoUserCoins = async (username: string, newAmount: number): Promise<void> => {
@@ -140,7 +141,7 @@ const initializeDemoData = () => {
       console.error("Error loading demo users:", error);
     }
   }
-  
+
   // Ensure demo user exists
   if (!demoUsers.has("demo")) {
     demoUsers.set("demo", demoUserData);
