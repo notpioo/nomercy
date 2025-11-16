@@ -1,51 +1,16 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Crown, Shield, Users, Edit2, X, Check, Camera, Upload, CalendarIcon, MapPin, Gamepad2 } from "lucide-react";
-import { useState, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { Crown, Shield, Users, Edit2, MapPin, Gamepad2, Calendar, Mail, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useLocation } from "wouter";
 
 export default function Profile() {
   const { currentUser } = useAuth();
-  const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-
-  // Form state
-  const [displayName, setDisplayName] = useState(currentUser?.displayName || "");
-  const [bio, setBio] = useState(currentUser?.bio || "");
-  const [birthday, setBirthday] = useState<Date | undefined>(
-    currentUser?.birthday ? new Date(currentUser.birthday) : undefined
-  );
-  const [gender, setGender] = useState(currentUser?.gender || "");
-  const [location, setLocation] = useState(currentUser?.location || "");
-  const [gamingPlatforms, setGamingPlatforms] = useState<string[]>(currentUser?.gamingPlatforms || []);
-  const [favoriteGames, setFavoriteGames] = useState(currentUser?.favoriteGames?.join(", ") || "");
-  const [discordLink, setDiscordLink] = useState(currentUser?.socialLinks?.discord || "");
-  const [steamLink, setSteamLink] = useState(currentUser?.socialLinks?.steam || "");
-  const [twitchLink, setTwitchLink] = useState(currentUser?.socialLinks?.twitch || "");
-  const [showEmail, setShowEmail] = useState(currentUser?.privacySettings?.showEmail || false);
-  const [showBirthday, setShowBirthday] = useState(currentUser?.privacySettings?.showBirthday || false);
-  const [showLocation, setShowLocation] = useState(currentUser?.privacySettings?.showLocation || false);
-  const [bannerURL, setBannerURL] = useState(currentUser?.bannerURL || "");
-  const [photoURL, setPhotoURL] = useState(currentUser?.photoURL || "");
+  const [, setLocation] = useLocation();
 
   if (!currentUser) return null;
 
@@ -67,144 +32,27 @@ export default function Profile() {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      toast({ title: "Uploading banner..." });
-      const { url } = await uploadToCloudinary(file);
-      setBannerURL(url);
-      toast({ title: "Banner uploaded successfully!" });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to upload banner",
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+  const getStatusColor = (status: string) => {
+    return {
+      online: "bg-status-online",
+      away: "bg-status-away",
+      busy: "bg-status-busy",
+      offline: "bg-status-offline",
+    }[status] || "bg-status-offline";
   };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      toast({ title: "Uploading avatar..." });
-      const { url } = await uploadToCloudinary(file);
-      setPhotoURL(url);
-      toast({ title: "Avatar uploaded successfully!" });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to upload avatar",
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
-
-  const togglePlatform = (platform: string) => {
-    setGamingPlatforms(prev =>
-      prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
-    );
-  };
-
-  const handleSave = async () => {
-    if (!currentUser) return;
-
-    setIsSaving(true);
-    try {
-      const updateData = {
-        displayName,
-        bio,
-        birthday: birthday ? birthday.getTime() : null,
-        gender: gender || null,
-        location,
-        gamingPlatforms,
-        favoriteGames: favoriteGames.split(",").map(g => g.trim()).filter(Boolean),
-        socialLinks: {
-          discord: discordLink,
-          steam: steamLink,
-          twitch: twitchLink,
-        },
-        privacySettings: {
-          showEmail,
-          showBirthday,
-          showLocation,
-        },
-        bannerURL,
-        photoURL,
-      };
-
-      await updateDoc(doc(db, "users", currentUser.uid), updateData);
-
-      toast({
-        title: "Profile updated!",
-        description: "Your profile has been saved successfully.",
-      });
-      setIsEditing(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    // Reset to current user data
-    setDisplayName(currentUser?.displayName || "");
-    setBio(currentUser?.bio || "");
-    setBirthday(currentUser?.birthday ? new Date(currentUser.birthday) : undefined);
-    setGender(currentUser?.gender || "");
-    setLocation(currentUser?.location || "");
-    setGamingPlatforms(currentUser?.gamingPlatforms || []);
-    setFavoriteGames(currentUser?.favoriteGames?.join(", ") || "");
-    setDiscordLink(currentUser?.socialLinks?.discord || "");
-    setSteamLink(currentUser?.socialLinks?.steam || "");
-    setTwitchLink(currentUser?.socialLinks?.twitch || "");
-    setShowEmail(currentUser?.privacySettings?.showEmail || false);
-    setShowBirthday(currentUser?.privacySettings?.showBirthday || false);
-    setShowLocation(currentUser?.privacySettings?.showLocation || false);
-    setBannerURL(currentUser?.bannerURL || "");
-    setPhotoURL(currentUser?.photoURL || "");
-    setIsEditing(false);
-  };
-
-  const platformOptions = ["PC", "PlayStation", "Xbox", "Nintendo Switch", "Mobile"];
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       {/* Header with Edit Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-            Profile
-          </h1>
-          <p className="text-muted-foreground">Manage your personal information</p>
-        </div>
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)} className="gap-2">
-            <Edit2 className="h-4 w-4" />
-            Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Check className="h-4 w-4 mr-2" />
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        )}
+      <div className="flex items-center justify-end">
+        <Button 
+          onClick={() => setLocation("/profile/edit")} 
+          className="gap-2"
+          data-testid="button-edit-profile"
+        >
+          <Edit2 className="h-4 w-4" />
+          Edit Profile
+        </Button>
       </div>
 
       {/* Banner and Avatar Section */}
@@ -217,57 +65,23 @@ export default function Profile() {
             roleColor === "bg-purple-500" && "from-purple-500/20 to-pink-500/20",
             roleColor === "bg-blue-500" && "from-blue-500/20 to-cyan-500/20"
           )}>
-            {bannerURL && (
-              <img src={bannerURL} alt="Banner" className="w-full h-full object-cover" />
+            {currentUser.bannerURL && (
+              <img src={currentUser.bannerURL} alt="Banner" className="w-full h-full object-cover" />
             )}
-            {isEditing && (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="absolute top-4 right-4"
-                onClick={() => bannerInputRef.current?.click()}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Change Banner
-              </Button>
-            )}
-            <input
-              ref={bannerInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleBannerUpload}
-            />
           </div>
 
           {/* Avatar */}
           <div className="absolute -bottom-16 left-8">
             <div className="relative">
               <Avatar className="w-32 h-32 border-4 border-card">
-                <AvatarImage src={photoURL} />
+                <AvatarImage src={currentUser.photoURL} />
                 <AvatarFallback className={`${roleColor} text-white text-3xl`}>
-                  {getInitials(displayName)}
+                  {getInitials(currentUser.displayName)}
                 </AvatarFallback>
               </Avatar>
-              {currentUser.status === "online" && (
-                <div className="absolute bottom-2 right-2 h-6 w-6 bg-status-online border-4 border-card rounded-full" />
-              )}
-              {isEditing && (
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute bottom-0 right-0 rounded-full h-8 w-8"
-                  onClick={() => avatarInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              )}
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
+              <div
+                className={`absolute bottom-2 right-2 h-6 w-6 ${getStatusColor(currentUser.status)} border-4 border-card rounded-full`}
+                title={currentUser.status}
               />
             </div>
           </div>
@@ -275,16 +89,64 @@ export default function Profile() {
 
         <CardContent className="pt-20 pb-6">
           <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-2xl font-bold">{displayName}</h2>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <h2 className="text-2xl font-bold">{currentUser.displayName}</h2>
                 <Badge variant="secondary" className="gap-1">
                   <RoleIcon className="h-3 w-3" />
                   {currentUser.role}
                 </Badge>
+                <Badge variant="outline" className="gap-1 capitalize">
+                  <div className={`h-2 w-2 ${getStatusColor(currentUser.status)} rounded-full`} />
+                  {currentUser.status}
+                </Badge>
               </div>
-              {currentUser.bio && !isEditing && (
-                <p className="text-muted-foreground max-w-2xl">{currentUser.bio}</p>
+
+              {/* Gaming Platforms & Favorite Games - Side by Side */}
+              {((currentUser.gamingPlatforms && currentUser.gamingPlatforms.length > 0) || 
+                (currentUser.favoriteGames && currentUser.favoriteGames.length > 0)) && (
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Gaming Platforms */}
+                  {currentUser.gamingPlatforms && currentUser.gamingPlatforms.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Gamepad2 className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Gaming Platforms</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {currentUser.gamingPlatforms.map((platform) => (
+                          <Badge key={platform} variant="default" className="text-xs">
+                            {platform}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Favorite Games */}
+                  {currentUser.favoriteGames && currentUser.favoriteGames.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Favorite Games</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {currentUser.favoriteGames.map((game, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {game}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Bio with Box - Full width to match profile card */}
+              {currentUser.bio && (
+                <div className="p-4 rounded-md bg-muted/50 border border-border w-full">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Bio</p>
+                  <p className="text-sm text-foreground leading-relaxed">{currentUser.bio}</p>
+                </div>
               )}
             </div>
             <div className="text-sm text-muted-foreground">
@@ -300,224 +162,87 @@ export default function Profile() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Update your personal details</CardDescription>
+            <CardDescription>Your profile details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                placeholder="Tell us about yourself..."
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                disabled={!isEditing}
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Birthday</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !birthday && "text-muted-foreground"
-                      )}
-                      disabled={!isEditing}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {birthday ? format(birthday, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={birthday}
-                      onSelect={setBirthday}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select value={gender} onValueChange={setGender} disabled={!isEditing}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Email */}
+            <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Email</p>
+                <p className="text-sm text-muted-foreground">{currentUser.email}</p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">
-                <MapPin className="h-4 w-4 inline mr-1" />
-                Location
-              </Label>
-              <Input
-                id="location"
-                placeholder="City, Country"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                disabled={!isEditing}
-              />
-            </div>
+            {/* Birthday */}
+            {currentUser.birthday && (
+              <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Birthday</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(currentUser.birthday), "MMMM d, yyyy")}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Gender */}
+            {currentUser.gender && (
+              <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+                <UserIcon className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Gender</p>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {currentUser.gender.replace(/_/g, " ")}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Location */}
+            {currentUser.location && (
+              <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Location</p>
+                  <p className="text-sm text-muted-foreground">{currentUser.location}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Privacy Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Privacy Settings</CardTitle>
-            <CardDescription>Control what others can see</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Show Email</Label>
-                <p className="text-xs text-muted-foreground">Display email on profile</p>
-              </div>
-              <Switch
-                checked={showEmail}
-                onCheckedChange={setShowEmail}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Show Birthday</Label>
-                <p className="text-xs text-muted-foreground">Display birthday publicly</p>
-              </div>
-              <Switch
-                checked={showBirthday}
-                onCheckedChange={setShowBirthday}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Show Location</Label>
-                <p className="text-xs text-muted-foreground">Display location publicly</p>
-              </div>
-              <Switch
-                checked={showLocation}
-                onCheckedChange={setShowLocation}
-                disabled={!isEditing}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Social Links - Moved to Sidebar */}
+        {(currentUser.socialLinks?.discord || currentUser.socialLinks?.steam || currentUser.socialLinks?.twitch) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Social Links</CardTitle>
+              <CardDescription>Connected accounts</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {currentUser.socialLinks.discord && (
+                <div className="p-3 rounded-md bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Discord</p>
+                  <p className="text-sm font-medium truncate">{currentUser.socialLinks.discord}</p>
+                </div>
+              )}
+              {currentUser.socialLinks.steam && (
+                <div className="p-3 rounded-md bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Steam</p>
+                  <p className="text-sm font-medium truncate">{currentUser.socialLinks.steam}</p>
+                </div>
+              )}
+              {currentUser.socialLinks.twitch && (
+                <div className="p-3 rounded-md bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Twitch</p>
+                  <p className="text-sm font-medium truncate">{currentUser.socialLinks.twitch}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      {/* Gaming Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Gamepad2 className="h-5 w-5 inline mr-2" />
-              Gaming Platforms
-            </CardTitle>
-            <CardDescription>Select your gaming platforms</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {platformOptions.map((platform) => (
-                <Badge
-                  key={platform}
-                  variant={gamingPlatforms.includes(platform) ? "default" : "outline"}
-                  className={cn(
-                    "cursor-pointer transition-all",
-                    !isEditing && "cursor-default"
-                  )}
-                  onClick={() => isEditing && togglePlatform(platform)}
-                >
-                  {platform}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Favorite Games</CardTitle>
-            <CardDescription>Comma-separated list of your favorite games</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="Valorant, CS2, League of Legends..."
-              value={favoriteGames}
-              onChange={(e) => setFavoriteGames(e.target.value)}
-              disabled={!isEditing}
-              rows={3}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Social Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Social Links</CardTitle>
-          <CardDescription>Connect your gaming profiles</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="discord">Discord</Label>
-            <Input
-              id="discord"
-              placeholder="username#1234"
-              value={discordLink}
-              onChange={(e) => setDiscordLink(e.target.value)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="steam">Steam</Label>
-            <Input
-              id="steam"
-              placeholder="steamcommunity.com/id/..."
-              value={steamLink}
-              onChange={(e) => setSteamLink(e.target.value)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="twitch">Twitch</Label>
-            <Input
-              id="twitch"
-              placeholder="twitch.tv/..."
-              value={twitchLink}
-              onChange={(e) => setTwitchLink(e.target.value)}
-              disabled={!isEditing}
-            />
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

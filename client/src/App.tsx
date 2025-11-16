@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Profile from "@/pages/profile";
+import ProfileEdit from "@/pages/profile-edit";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -157,6 +158,13 @@ function Router() {
         <ProtectedRoute>
           <AuthenticatedLayout>
             <Profile />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/profile/edit">
+        <ProtectedRoute>
+          <AuthenticatedLayout>
+            <ProfileEdit />
           </AuthenticatedLayout>
         </ProtectedRoute>
       </Route>

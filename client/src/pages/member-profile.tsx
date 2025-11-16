@@ -145,8 +145,8 @@ export default function MemberProfile({ params }: MemberProfileProps) {
 
         <CardContent className="pt-20 pb-6">
           <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
                 <h2 className="text-2xl font-bold">{member.displayName}</h2>
                 <Badge variant="secondary" className="gap-1">
                   <RoleIcon className="h-3 w-3" />
@@ -157,8 +157,52 @@ export default function MemberProfile({ params }: MemberProfileProps) {
                   {member.status}
                 </Badge>
               </div>
+
+              {/* Gaming Platforms & Favorite Games - Side by Side */}
+              {((member.gamingPlatforms && member.gamingPlatforms.length > 0) || 
+                (member.favoriteGames && member.favoriteGames.length > 0)) && (
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Gaming Platforms */}
+                  {member.gamingPlatforms && member.gamingPlatforms.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Gamepad2 className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Gaming Platforms</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {member.gamingPlatforms.map((platform) => (
+                          <Badge key={platform} variant="default" className="text-xs">
+                            {platform}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Favorite Games */}
+                  {member.favoriteGames && member.favoriteGames.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Favorite Games</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {member.favoriteGames.map((game, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {game}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Bio with Box - Full width to match profile card */}
               {member.bio && (
-                <p className="text-muted-foreground max-w-2xl">{member.bio}</p>
+                <div className="p-4 rounded-md bg-muted/50 border border-border w-full">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Bio</p>
+                  <p className="text-sm text-foreground leading-relaxed">{member.bio}</p>
+                </div>
               )}
             </div>
             <div className="text-sm text-muted-foreground">
@@ -168,10 +212,10 @@ export default function MemberProfile({ params }: MemberProfileProps) {
         </CardContent>
       </Card>
 
-      {/* Profile Information Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Profile Information - Full Width */}
+      <div className="space-y-6">
         {/* Personal Information */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>Public profile details</CardDescription>
@@ -237,109 +281,36 @@ export default function MemberProfile({ params }: MemberProfileProps) {
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Member Stats</CardTitle>
-            <CardDescription>Activity overview</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Status</span>
-              <Badge variant="outline" className="capitalize gap-1">
-                <div className={`h-2 w-2 ${getStatusColor(member.status)} rounded-full`} />
-                {member.status}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Role</span>
-              <Badge variant="secondary" className="capitalize">
-                {member.role}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Joined</span>
-              <span className="text-sm font-medium">
-                {format(new Date(member.createdAt), "MMM yyyy")}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Social Links */}
+        {(member.socialLinks?.discord || member.socialLinks?.steam || member.socialLinks?.twitch) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Social Links</CardTitle>
+              <CardDescription>Connect with this member</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {member.socialLinks.discord && (
+                <div className="p-3 rounded-md bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Discord</p>
+                  <p className="text-sm font-medium truncate">{member.socialLinks.discord}</p>
+                </div>
+              )}
+              {member.socialLinks.steam && (
+                <div className="p-3 rounded-md bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Steam</p>
+                  <p className="text-sm font-medium truncate">{member.socialLinks.steam}</p>
+                </div>
+              )}
+              {member.socialLinks.twitch && (
+                <div className="p-3 rounded-md bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Twitch</p>
+                  <p className="text-sm font-medium truncate">{member.socialLinks.twitch}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      {/* Gaming Information */}
-      {(member.gamingPlatforms?.length > 0 || member.favoriteGames?.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {member.gamingPlatforms && member.gamingPlatforms.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <Gamepad2 className="h-5 w-5 inline mr-2" />
-                  Gaming Platforms
-                </CardTitle>
-                <CardDescription>Platforms this member plays on</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {member.gamingPlatforms.map((platform) => (
-                    <Badge key={platform} variant="default">
-                      {platform}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {member.favoriteGames && member.favoriteGames.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Favorite Games</CardTitle>
-                <CardDescription>Games this member enjoys</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {member.favoriteGames.map((game, index) => (
-                    <Badge key={index} variant="outline">
-                      {game}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {/* Social Links */}
-      {(member.socialLinks?.discord || member.socialLinks?.steam || member.socialLinks?.twitch) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Social Links</CardTitle>
-            <CardDescription>Connect with this member</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {member.socialLinks.discord && (
-              <div className="p-3 rounded-md bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Discord</p>
-                <p className="text-sm font-medium truncate">{member.socialLinks.discord}</p>
-              </div>
-            )}
-            {member.socialLinks.steam && (
-              <div className="p-3 rounded-md bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Steam</p>
-                <p className="text-sm font-medium truncate">{member.socialLinks.steam}</p>
-              </div>
-            )}
-            {member.socialLinks.twitch && (
-              <div className="p-3 rounded-md bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Twitch</p>
-                <p className="text-sm font-medium truncate">{member.socialLinks.twitch}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
